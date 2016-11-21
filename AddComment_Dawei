@@ -1,0 +1,83 @@
+#!/bin/bash
+#####################################################
+
+#Name: Dawei Feng
+#ID: 1467483
+#Date: Nov 20, 2016
+#How to use this program:
+#By using the command --> bash AddComment_Dawei filename
+#The program will add comments for the specific file, which is the 
+#inputed filename.
+#For exemple: bash AddComment_Dawei test.txt
+#Arrays were used in the program as stacks
+
+#####################################################
+
+typeset -i LineNum=1                #Tracking line number while reading the file
+typeset -i loopCount=0              #Tracking amount of loops 
+typeset -i selectionCount=0         #Tracking amount of selections
+
+typeset -i doneArray[0]=0           #Create an array and work like a stack of "done" command
+typeset -i index=0                  #Keep tracking the top of the stack
+
+typeset -i endOfSelectArray[0]=0    #Create an array and work like a stack of "fi, esac" command
+typeset -i selectIndex=0            #Keep tracking the top of the selection stack
+
+
+cat $1 | while read -r line || [[ -n "$line" ]]; #read from the argument and check if it is the last line
+do
+
+    token=($line)           #String that read from one line
+
+    if [[ ${token[0]} == "esac" ]]      #Check the first word in the line
+        then ((--selectIndex))
+             sed -i '.bak' "${LineNum}s/$/ #selection ${selectionCount[selectIndex]}/" test.txt      #pop
+    fi
+
+
+    case ${token[0]} in         #Check the first word in the line
+        if)
+            ((++selectionCount))
+            endOfSelectArray[$selectIndex]=$selectionCount     #push
+            sed -i '.bak' "${LineNum}s/$/ #selection $selectionCount/" test.txt
+            ((++selectIndex));;
+            
+        done)
+            ((--index))
+            sed -i '.bak' "${LineNum}s/$/ #loop ${doneArray[$index]}/" test.txt;;   #pop
+        
+        while)
+            ((++loopCount))
+            doneArray[$index]=$loopCount        #push
+            sed -i '.bak' "${LineNum}s/$/ #loop $loopCount/" test.txt
+            ((++index));;
+
+        until)
+            ((++loopCount))
+            doneArray[$index]=$loopCount        #push
+            sed -i '.bak' "${LineNum}s/$/ #loop $loopCount/" test.txt
+            ((++index));;
+
+        for)
+            ((++loopCount))
+            doneArray[$index]=$loopCount        #push
+            sed -i '.bak' "${LineNum}s/$/ #loop $loopCount/" test.txt
+            ((++index));;
+
+        case)
+            ((++selectionCount))
+            endOfSelectArray[$selectIndex]=$selectionCount      #push
+            sed -i '.bak' "${LineNum}s/$/ #selection $selectionCount/" test.txt
+            ((++selectIndex));;
+        
+        fi)
+            ((--selectIndex))
+            sed -i '.bak' "${LineNum}s/$/ #selection ${selectionCount[selectIndex]}/" test.txt;;  #pop
+    esac
+
+
+    LineNum=LineNum+1
+
+
+
+done < test.txt

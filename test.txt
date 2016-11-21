@@ -1,0 +1,10 @@
+cat > script6
+count=0   # initialize
+for arg in /usr/local/*   # list of values can be computed #loop 1
+  do ((++count))
+  echo $count. $arg   # print numbers before the values
+done   # end of loop #loop 1
+^D
+bash script6
+
+rm script[1-6]   # clean up
